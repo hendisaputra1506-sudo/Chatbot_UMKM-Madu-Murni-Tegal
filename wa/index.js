@@ -74,7 +74,7 @@ try {
 
     // 🔁 Kirim ke AI
     const res = await axios.post(
-        "http://127.0.0.1:5000/chat",
+        "chatbotumkm-madu-murni-tegal.up.railway.app/chat",
         { message: text },
         { timeout: 15000 }
     )
