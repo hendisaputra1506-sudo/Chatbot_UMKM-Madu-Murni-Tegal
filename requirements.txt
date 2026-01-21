@@ -1,0 +1,6 @@
+python-dotenv
+langchain
+langchain-groq
+python-telegram-bot==20.*
+qrcode-terminal
+pino
