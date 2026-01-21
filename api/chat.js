@@ -1,6 +1,6 @@
 const { getBotReply } = require("./core")
 
-module.exports = async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" })
   }
@@ -11,8 +11,6 @@ module.exports = async function handler(req, res) {
     res.status(200).json({ reply })
   } catch (err) {
     console.error(err)
-    res.status(500).json({
-      reply: "Maaf Kak, sistem sedang bermasalah 🙏"
-    })
+    res.status(500).json({ reply: "Server error" })
   }
 }
