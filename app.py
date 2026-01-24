@@ -1,8 +1,14 @@
 import os
-import threading
+import asyncio
 from flask import Flask, request, jsonify
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters, CommandHandler
+from telegram.ext import (
+    ApplicationBuilder,
+    ContextTypes,
+    MessageHandler,
+    CommandHandler,
+    filters
+)
 
 from core import get_bot_reply
 
@@ -15,7 +21,7 @@ if not TELEGRAM_TOKEN:
     raise ValueError("TELEGRAM_TOKEN belum di-set di Railway Variables")
 
 # ===============================
-# FLASK APP (WEB API)
+# FLASK APP
 # ===============================
 app = Flask(__name__)
 
@@ -32,29 +38,35 @@ def chat():
 
 
 # ===============================
-# TELEGRAM BOT
+# TELEGRAM HANDLERS
 # ===============================
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Halo Kak 👋\nSaya asisten Madu Murni Tegal.\nSilakan tanya seputar madu ya 😊"
+        "Halo Kak 👋\nSaya asisten *Madu Murni Tegal* 🍯\nSilakan tanya seputar produk ya 😊",
+        parse_mode="Markdown"
     )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
     reply = get_bot_reply(user_message)
-    await update.message.reply_text(reply)
-
-def run_telegram_bot():
-    app_telegram = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app_telegram.add_handler(CommandHandler("start", start))
-    app_telegram.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("🤖 Telegram Bot berjalan...")
-    app_telegram.run_polling()
+    await update.message.reply_text(reply, parse_mode="Markdown")
 
 
 # ===============================
-# JALANKAN KEDUANYA
+# RUN TELEGRAM BOT (ASYNC)
+# ===============================
+async def run_telegram_bot():
+    application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    print("🤖 Telegram Bot berjalan...")
+    await application.run_polling()
+
+
+# ===============================
+# ENTRY POINT
 # ===============================
 if __name__ == "__main__":
-    threading.Thread(target=run_telegram_bot).start()
+    loop = asyncio.get_event_loop()
+    loop.create_task(run_telegram_bot())
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
