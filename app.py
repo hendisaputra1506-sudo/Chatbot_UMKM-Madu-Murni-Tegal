@@ -66,7 +66,12 @@ async def run_telegram_bot():
 # ===============================
 # ENTRY POINT
 # ===============================
+import threading
+
+def start_telegram():
+    asyncio.run(run_telegram_bot())
+
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(run_telegram_bot())
+    threading.Thread(target=start_telegram, daemon=True).start()
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+
