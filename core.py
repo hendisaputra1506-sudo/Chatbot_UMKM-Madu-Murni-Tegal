@@ -1,8 +1,8 @@
 import os
 import re
+from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
-from dotenv import load_dotenv
 
 # ===============================
 # LOAD ENV
@@ -18,7 +18,7 @@ if not GROQ_API_KEY:
 # ===============================
 llm = ChatGroq(
     model_name="llama-3.1-8b-instant",
-    temperature=0.4,
+    temperature=0.7,   # 🔥 lebih natural
     api_key=GROQ_API_KEY
 )
 
@@ -35,10 +35,10 @@ def contains_bad_word(text: str) -> bool:
     return any(re.search(rf"\b{w}\b", text) for w in BAD_WORDS)
 
 # ===============================
-# SYSTEM CONTEXT / TRAINING AI
+# SYSTEM CONTEXT
 # ===============================
 SYSTEM_CONTEXT = """
-Anda adalah Customer Service resmi UMKM bernama "Madu Murni Tegal".
+Kamu adalah Customer Service resmi UMKM *Madu Murni Tegal*.
 
 PROFIL:
 - Berdiri sejak 2016
@@ -58,17 +58,15 @@ PEMESANAN:
 - Kurir internal
 
 PEMBAYARAN:
-- Cash
-- Transfer
-- QRIS
+- Cash, Transfer, QRIS
 
-ATURAN JAWABAN:
-1. Bahasa santai & sopan (WhatsApp style)
-2. Jawaban singkat, jelas, to the point
-3. Gunakan *bold* untuk info penting
-4. Dilarang HTML & Markdown lain
-5. Jangan menyebut diri sebagai AI
-6. Fokus madu, manfaat, harga, pengiriman
+GAYA JAWABAN:
+- Bahasa santai, sopan, seperti admin WhatsApp
+- Jawaban singkat & jelas
+- Gunakan *bold* hanya untuk info penting
+- Jangan pakai HTML
+- Jangan menyebut diri sebagai AI
+- Jangan bertele-tele
 """
 
 # ===============================
@@ -79,13 +77,15 @@ def get_bot_reply(user_message: str) -> str:
         return "Halo Kak 😊 ada yang bisa kami bantu?"
 
     if contains_bad_word(user_message):
-        return "Mohon gunakan bahasa yang sopan ya Kak 🙏"
+        return "Mohon gunakan bahasa yang sopan ya Kak 🙏 Kami siap bantu dengan senang hati."
 
-    salam = ["halo", "hai", "hi", "p", "assalamualaikum"]
-    is_greeting = user_message.lower().strip() in salam
+    msg = user_message.lower()
 
-    sapaan_rule = (
-        "Awali jawaban dengan sapaan singkat."
+    # ✅ salam lebih fleksibel
+    is_greeting = any(s in msg for s in ["halo", "hai", "hi", "assalamualaikum", "pagi", "siang", "malam"])
+
+    greeting_rule = (
+        "Boleh awali jawaban dengan sapaan singkat dan ramah."
         if is_greeting
         else "Langsung jawab ke inti tanpa sapaan."
     )
@@ -96,16 +96,21 @@ def get_bot_reply(user_message: str) -> str:
                 "system",
                 f"""{SYSTEM_CONTEXT}
 
-TAMBAHAN:
-- {sapaan_rule}
+ATURAN TAMBAHAN:
+- {greeting_rule}
+- Jika ditanya jam buka, alamat, atau cara pesan, jawab konsisten
 """
             ),
             ("human", "{input}")
         ])
 
         response = (prompt | llm).invoke({"input": user_message})
-        return response.content.strip()
+
+        # 🧹 post-processing ringan
+        reply = response.content.strip()
+
+        return reply
 
     except Exception as e:
         print("AI Error:", e)
-        return "Maaf Kak, sistem sedang sibuk 🙏"
+        return "Maaf Kak, sistem sedang sibuk 🙏 Silakan coba lagi sebentar ya."
