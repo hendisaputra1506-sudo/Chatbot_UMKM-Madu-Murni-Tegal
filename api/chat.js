@@ -7,10 +7,21 @@ function containsBadWord(text) {
 }
 
 function isGreeting(text) {
-  return ["halo","hai","hi","p","assalamualaikum"].includes(text.toLowerCase());
+  return ["halo", "hai", "hi", "p", "assalamualaikum"].includes(
+    text.toLowerCase().trim()
+  );
 }
 
 export default async function handler(req, res) {
+
+if (isGreeting(userMessage)) {
+  return res.json({
+    reply:
+      "Halo Kak 👋😊\n" +
+      "Ada yang bisa kami bantu terkait *produk madu*, *manfaat*, atau *cara pemesanan*?"
+  });
+}
+
   if (req.method !== "POST") {
     return res.status(405).json({ reply: "Method not allowed" });
   }
