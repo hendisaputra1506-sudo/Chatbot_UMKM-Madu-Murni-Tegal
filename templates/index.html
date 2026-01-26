@@ -166,34 +166,77 @@ button:hover {
 </div>
 
 <script>
-const chat = document.getElementById("chat");
+const chatBox = document.getElementById("chat-box");
+const input = document.getElementById("message");
 
-function add(text, cls){
-  const d = document.createElement("div");
-  d.className = "msg " + cls;
-  d.innerHTML = text.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>");
-  chat.appendChild(d);
-  chat.scrollTop = chat.scrollHeight;
+function addMessage(text, sender) {
+    const div = document.createElement("div");
+    div.className = "msg " + sender;
+
+    let formatted = text
+        .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>")
+        .replace(/\n/g, "<br>");
+
+    div.innerHTML = formatted;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-async function send(){
-  const input = document.getElementById("input");
-  const text = input.value.trim();
-  if(!text) return;
-  add(text,"user");
-  input.value = "";
-
-  const res = await fetch("/api/chat",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ message: text })
-  });
-
-  const data = await res.json();
-  add(data.reply,"bot");
+function showTyping() {
+    const typing = document.createElement("div");
+    typing.className = "typing";
+    typing.id = "typing";
+    typing.innerText = "Asisten sedang mengetik...";
+    chatBox.appendChild(typing);
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-add("Halo Kak 👋<br>Selamat datang di <b>Madu Murni Tegal</b> 🍯","bot");
+function hideTyping() {
+    const typing = document.getElementById("typing");
+    if (typing) typing.remove();
+}
+
+async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    showTyping();
+
+    try {
+        const res = await fetch("/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+
+        setTimeout(() => {
+            hideTyping();
+            addMessage(data.reply, "bot");
+        }, 1000);
+
+    } catch {
+        hideTyping();
+        addMessage("Maaf, koneksi bermasalah 🙏", "bot");
+    }
+}
+
+input.addEventListener("keydown", e => {
+    if (e.key === "Enter") sendMessage();
+});
+
+window.onload = () => {
+    addMessage(
+        "Halo Kak 👋<br>" +
+        "Selamat datang di **Madu Murni Tegal** 🍯<br>" +
+        "Silakan tanya seputar jenis madu, manfaat, atau cara pemesanan.",
+        "bot"
+    );
+};
 </script>
 
 </body>
