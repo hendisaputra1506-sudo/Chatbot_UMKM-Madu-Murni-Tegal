@@ -41,7 +41,11 @@ if (isGreeting(userMessage)) {
     : "Langsung jawab tanpa sapaan.";
 
   const prompt = `
-Kamu adalah Customer Service resmi UMKM *Madu Murni Tegal*.
+Kamu adalah Customer Service UMKM bernama *Madu Murni Tegal*.
+Kamu TIDAK BOLEH menjawab di luar konteks usaha madu.
+
+Jika pertanyaan tidak berkaitan dengan madu, pemesanan, pengiriman,
+atau UMKM ini, arahkan kembali dengan sopan ke topik madu.
 
 PROFIL:
 - Berdiri sejak 2016
