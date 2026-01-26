@@ -1,5 +1,5 @@
-from core import get_bot_reply
 import json
+from core import get_bot_reply
 
 def handler(request):
     if request.method != "POST":
