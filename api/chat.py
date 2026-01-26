@@ -9,9 +9,9 @@ def handler(request):
         }
 
     data = request.json()
-    msg = data.get("message", "")
+    message = data.get("message", "")
 
-    reply = get_bot_reply(msg)
+    reply = get_bot_reply(message)
 
     return {
         "statusCode": 200,
